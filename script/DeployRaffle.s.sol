@@ -22,7 +22,7 @@ contract DeployRaffle is Script {
 
 
         //    come and check here later for testnet deployments
-
+ 
             FundSubscriptions fundSubscription = new FundSubscriptions();
             fundSubscription.fundSubscription(config.vrfCoordinator, config.subscriptionId, config.link);
         }

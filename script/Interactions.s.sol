@@ -33,6 +33,10 @@ contract CreateSubscriptions is Script {
     }
 }
 
+
+
+
+
 contract FundSubscriptions is Script, CodeConstants {
     function run() external {
         fundSubscriptionsUsingConfig();
@@ -60,6 +64,10 @@ contract FundSubscriptions is Script, CodeConstants {
     }
 }
 
+
+
+
+
 contract AddConsumer is Script {
     function run() external {
         address mostRecentDeployed = DevOpsTools.get_most_recent_deployment("Raffle", block.chainid);
@@ -70,7 +78,6 @@ contract AddConsumer is Script {
         HelperConfig helperConfig = new HelperConfig();
         address vrfCoordinator = helperConfig.getConfig().vrfCoordinator;
         uint256 subscriptionId = helperConfig.getConfig().subscriptionId;
-        address link = helperConfig.getConfig().link;
         addConsumer(mostRecntlyDeployed, vrfCoordinator, subscriptionId);
     }
 
