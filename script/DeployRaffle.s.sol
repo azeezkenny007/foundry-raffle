@@ -20,9 +20,8 @@ contract DeployRaffle is Script {
             CreateSubscriptions createSubscription = new CreateSubscriptions();
             (config.subscriptionId, config.vrfCoordinator) = createSubscription.createSubcription(config.vrfCoordinator);
 
+            //    come and check here later for testnet deployments
 
-        //    come and check here later for testnet deployments
- 
             FundSubscriptions fundSubscription = new FundSubscriptions();
             fundSubscription.fundSubscription(config.vrfCoordinator, config.subscriptionId, config.link);
         }
@@ -39,7 +38,7 @@ contract DeployRaffle is Script {
         vm.stopBroadcast();
 
         AddConsumer addConsumer = new AddConsumer();
-        addConsumer.addConsumer(address(raffle),config.vrfCoordinator ,config.subscriptionId);
+        addConsumer.addConsumer(address(raffle), config.vrfCoordinator, config.subscriptionId);
 
         return (raffle, helperConfig);
     }
