@@ -10,7 +10,9 @@ abstract contract CodeConstants {
     /*VRF Mock Values */
     uint96 public constant MOCK_BASE_FEE = 0.25 ether;
     uint96 public constant MOCK_GAS_PRICE_LINK = 1e9;
-    uint256 public constant SUBSCRIPTION_FUND_AMOUNT = 3 ether;
+    uint256 public constant SUBSCRIPTION_FUND_AMOUNT = 2 ether;
+     address public constant FOUNDRY_DEFAULT_SENDER =
+        0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
 
     // LINK VALUES
     int256 public constant MOCK_WEI_PER_UNIT_LINK = 4e15;
@@ -33,6 +35,7 @@ contract HelperConfig is Script, CodeConstants {
         uint256 subscriptionId;
         uint32 callbackGasLimit;
         address link;
+        address account;
     }
 
     NetworkConfig public localNetworkConfig;
@@ -57,7 +60,9 @@ contract HelperConfig is Script, CodeConstants {
             gasLane: 0x9e1344a1247c8a1785d0a4681a27152bffdb43666ae5bf7d14d24a5efd44bf71,
             subscriptionId: 0,
             callbackGasLimit: 100000,
-            link: 0xE4aB69C077896252FAFBD49EFD26B5D171A32410
+            link: 0xE4aB69C077896252FAFBD49EFD26B5D171A32410,
+            account : 0x5D4DAcB7e634CF57ed2e02b190Eb0E468bBf36e1
+
         });
     }
 
@@ -83,7 +88,8 @@ contract HelperConfig is Script, CodeConstants {
             gasLane: "0x7a4b1",
             subscriptionId: 0,
             callbackGasLimit: 100000,
-            link: address(linkToken)
+            link: address(linkToken),
+            account: FOUNDRY_DEFAULT_SENDER
         });
 
         return localNetworkConfig;
