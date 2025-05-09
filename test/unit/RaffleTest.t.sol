@@ -159,20 +159,26 @@ contract RaffleTest is Test, TestConfig {
 
         // Get the logs
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        
+
         bytes32 requestId = entries[1].topics[1];
         Raffle.RaffleState raffleState = raffle.getRaffleState();
         assertTrue(uint256(requestId) > 0);
         assertEq(uint256(raffleState), 1);
     }
 
-    function testFulfillRandomWordsCanOnlyBeCalledIfPerformUpkeepIsTrue(uint256 randomWords) external raffleEntered{
-      vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
-      VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(randomWords, address(raffle));
+    function testFulfillRandomWordsCanOnlyBeCalledIfPerformUpkeepIsTrue(uint256 randomWords) external raffleEntered {
+        vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(randomWords, address(raffle));
     }
 
+    function testFulfillRandomwordsPicksAwinnerResetAndSendMoney() external raffleEntered {
+        uint256 startingIndex = 1;
+        uint256 numberOfPlayers = 3;
 
-    function testFulfillRandomwordsPicksAwinnerResetAndSendMoney() external raffleEntered{
-        
+        for (uint256 i = startingIndex; i < numberOfPlayers; i++) {
+            address newPlayer = address(uint160(i));
+            hoax(newPlayer, STARTING_BALANCE);
+            raffle.enterRaffle{value: entranceFee}();
+        }
     }
 }
