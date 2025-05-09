@@ -166,8 +166,13 @@ contract RaffleTest is Test, TestConfig {
         assertEq(uint256(raffleState), 1);
     }
 
-    function testFulfillRandomWordsCanOnlyBeCalledIfPerformUpkeepIsTrue() external raffleEntered{
+    function testFulfillRandomWordsCanOnlyBeCalledIfPerformUpkeepIsTrue(uint256 randomWords) external raffleEntered{
       vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
-      VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(0, address(raffle));
+      VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(randomWords, address(raffle));
+    }
+
+
+    function testFulfillRandomwordsPicksAwinnerResetAndSendMoney() external raffleEntered{
+        
     }
 }
