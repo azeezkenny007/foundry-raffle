@@ -33,6 +33,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     // Events
     event RaffleEntered(address indexed player);
     event WinnerPicked(address indexed winner);
+    event RequestedRaffleWinner(uint256 indexed requestId);
 
     // Errors
     error Raffle__NotEnoughEthSent();
@@ -111,7 +112,8 @@ contract Raffle is VRFConsumerBaseV2Plus {
             numWords: NUM_WORDS,
             extraArgs: VRFV2PlusClient._argsToBytes(VRFV2PlusClient.ExtraArgsV1({nativePayment: false}))
         });
-        s_vrfCoordinator.requestRandomWords(request);
+       uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
+       emit RequestedRaffleWinner(requestId);
     }
 
     // External view functions

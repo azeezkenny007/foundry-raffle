@@ -6,6 +6,7 @@ import {Test} from "forge-std/Test.sol";
 import {DeployRaffle} from "../../script/DeployRaffle.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {Raffle} from "../../src/Raffle.sol";
+import {Vm} from "forge-std/Vm.sol";
 
 abstract contract TestConfig {
     uint256 public constant STARTING_BALANCE = 10 ether;
@@ -122,7 +123,7 @@ contract RaffleTest is Test, TestConfig {
     ///////////////////////////////////////////////
     // Getter Tests
     ///////////////////////////////////////////////
-    function testToCheckTheEntranceFee() external {
+    function testToCheckTheEntranceFee() external view {
         assertEq(raffle.getEntranceFee(), entranceFee);
     }
 
@@ -141,4 +142,20 @@ contract RaffleTest is Test, TestConfig {
         vm.roll(block.number + 1);
         raffle.performUpkeep("");
     }
-}
+
+    function testPerformUpkeepUpdateRaffleStateAndEmitRequestId() external{
+         vm.prank(player);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+
+        vm.recordLogs();
+        raffle.performUpkeep("");
+
+        // Get the logs
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        console2.log(entries);
+
+    }
+
+    }
