@@ -7,6 +7,8 @@ import {DeployRaffle} from "../../script/DeployRaffle.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {Raffle} from "../../src/Raffle.sol";
 import {Vm} from "forge-std/Vm.sol";
+import {console} from "forge-std/console.sol";
+import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 
 abstract contract TestConfig {
     uint256 public constant STARTING_BALANCE = 10 ether;
@@ -19,13 +21,33 @@ abstract contract TestConfig {
 }
 
 contract RaffleTest is Test, TestConfig {
+    ///////////////////////////////////////////////
+    // State Variables
+    ///////////////////////////////////////////////
     Raffle public raffle;
     HelperConfig public helperConfig;
     address public player;
 
+    ///////////////////////////////////////////////
+    // Events
+    ///////////////////////////////////////////////
     event RaffleEntered(address indexed player);
     event WinnerPicked(address indexed winner);
 
+    ///////////////////////////////////////////////
+    // Modifiers
+    ///////////////////////////////////////////////
+    modifier raffleEntered() {
+        vm.prank(player);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        _;
+    }
+
+    ///////////////////////////////////////////////
+    // Setup
+    ///////////////////////////////////////////////
     function setUp() external {
         player = makeAddr("player");
         vm.deal(player, STARTING_BALANCE);
@@ -45,6 +67,21 @@ contract RaffleTest is Test, TestConfig {
     ///////////////////////////////////////////////
     function testRaffleStartedWithOpenState() external view {
         assertEq(uint256(raffle.getRaffleState()), 0);
+    }
+
+    ///////////////////////////////////////////////
+    // Getter Tests
+    ///////////////////////////////////////////////
+    function testToCheckTheEntranceFee() external view {
+        assertEq(raffle.getEntranceFee(), entranceFee);
+    }
+
+    function testNumberOfPlayersThatEnteredRaffle() external {
+        vm.prank(player);
+        raffle.enterRaffle{value: entranceFee}();
+        address payable[] memory players = raffle.getNumberOfPlayers();
+        uint256 numOfPlayers = players.length;
+        assertEq(numOfPlayers, 1);
     }
 
     ///////////////////////////////////////////////
@@ -77,11 +114,7 @@ contract RaffleTest is Test, TestConfig {
         raffle.enterRaffle{value: entranceFee}();
     }
 
-    function testDontAllowEntranceWhenRaffleIsCalculating() external {
-        vm.prank(player);
-        raffle.enterRaffle{value: entranceFee}();
-        vm.warp(block.timestamp + interval + 1);
-        vm.roll(block.number + 1);
+    function testDontAllowEntranceWhenRaffleIsCalculating() external raffleEntered {
         raffle.performUpkeep("");
         vm.expectRevert(Raffle.Raffle__RaffleNotOpen.selector);
         vm.prank(player);
@@ -98,11 +131,7 @@ contract RaffleTest is Test, TestConfig {
         assert(!upkeepNeeded);
     }
 
-    function testToCheckRUpkeepReturnsFalseIfRaffleNotOpen() external {
-        vm.prank(player);
-        raffle.enterRaffle{value: entranceFee}();
-        vm.warp(block.timestamp + interval + 1);
-        vm.roll(block.number + 1);
+    function testToCheckRUpkeepReturnsFalseIfRaffleNotOpen() external raffleEntered {
         raffle.performUpkeep("");
         (bool upkeepNeeded,) = raffle.checkUpkeep("");
         assert(!upkeepNeeded);
@@ -120,42 +149,25 @@ contract RaffleTest is Test, TestConfig {
         raffle.performUpkeep("");
     }
 
-    ///////////////////////////////////////////////
-    // Getter Tests
-    ///////////////////////////////////////////////
-    function testToCheckTheEntranceFee() external view {
-        assertEq(raffle.getEntranceFee(), entranceFee);
-    }
-
-    function testNumberOfPlayersThatEnteredRaffle() external {
-        vm.prank(player);
-        raffle.enterRaffle{value: entranceFee}();
-        address payable[] memory players = raffle.getNumberOfPlayers();
-        uint256 numOfPlayers = players.length;
-        assertEq(numOfPlayers, 1);
-    }
-
-    function testPerformUpKeepCanOnlyRunIfCheckUpKeepIsTrue() external {
-        vm.prank(player);
-        raffle.enterRaffle{value: entranceFee}();
-        vm.warp(block.timestamp + interval + 1);
-        vm.roll(block.number + 1);
+    function testPerformUpKeepCanOnlyRunIfCheckUpKeepIsTrue() external raffleEntered {
         raffle.performUpkeep("");
     }
 
-    function testPerformUpkeepUpdateRaffleStateAndEmitRequestId() external{
-         vm.prank(player);
-        raffle.enterRaffle{value: entranceFee}();
-        vm.warp(block.timestamp + interval + 1);
-        vm.roll(block.number + 1);
-
+    function testPerformUpkeepUpdateRaffleStateAndEmitRequestId() external raffleEntered {
         vm.recordLogs();
         raffle.performUpkeep("");
 
         // Get the logs
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        console2.log(entries);
-
+        
+        bytes32 requestId = entries[1].topics[1];
+        Raffle.RaffleState raffleState = raffle.getRaffleState();
+        assertTrue(uint256(requestId) > 0);
+        assertEq(uint256(raffleState), 1);
     }
 
+    function testFulfillRandomWordsCanOnlyBeCalledIfPerformUpkeepIsTrue() external raffleEntered{
+      vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
+      VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(0, address(raffle));
     }
+}
