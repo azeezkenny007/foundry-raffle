@@ -12,6 +12,16 @@ help:
 
 all: clean remove install update build
 
+
+deploy/verify-Base-sepolia:
+	forge script script/DeployFundMe.s.sol:DeployFundMe \
+	--rpc-url $(SEPOLIA_RPC_URL) \
+	--account sepoliaWallet \
+	--verify \
+	--etherscan-api-key $(ETHERSCAN_API_KEY) \
+	--broadcast \
+	-vvvv 
+
 # Clean the repo
 clean  :; forge clean
 
