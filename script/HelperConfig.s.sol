@@ -11,8 +11,8 @@ abstract contract CodeConstants {
     uint96 public constant MOCK_BASE_FEE = 0.25 ether;
     uint96 public constant MOCK_GAS_PRICE_LINK = 1e9;
     uint256 public constant SUBSCRIPTION_FUND_AMOUNT = 2 ether;
-     address public constant FOUNDRY_DEFAULT_SENDER =
-        0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
+    address public constant FOUNDRY_DEFAULT_SENDER = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
+    uint256 public constant ETH_SEPOLIA_CHAIN_ID = 11155111;
 
     // LINK VALUES
     int256 public constant MOCK_WEI_PER_UNIT_LINK = 4e15;
@@ -25,6 +25,7 @@ contract HelperConfig is Script, CodeConstants {
 
     constructor() {
         netWorkConfig[BASE_SEPOLIA_CHAIN_ID] = getBaseSepoliaConfig();
+        netWorkConfig[ETH_SEPOLIA_CHAIN_ID] = getSepoliaEthConfig();
     }
 
     struct NetworkConfig {
@@ -52,6 +53,23 @@ contract HelperConfig is Script, CodeConstants {
         }
     }
 
+    function setConfig(uint256 chainId, NetworkConfig memory config) public {
+        netWorkConfig[chainId] = config;
+    }
+
+    function getSepoliaEthConfig() public pure returns (NetworkConfig memory sepoliaNetworkConfig) {
+        sepoliaNetworkConfig = NetworkConfig({
+            subscriptionId: 0, // If left as 0, our scripts will create one!
+            gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
+            interval: 30, // 30 seconds
+            entranceFee: 0.01 ether,
+            callbackGasLimit: 500000, // 500,000 gas
+            vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
+            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789,
+            account: 0x5D4DAcB7e634CF57ed2e02b190Eb0E468bBf36e1
+        });
+    }
+
     function getBaseSepoliaConfig() public pure returns (NetworkConfig memory) {
         return NetworkConfig({
             entranceFee: 0.01 ether,
@@ -59,10 +77,9 @@ contract HelperConfig is Script, CodeConstants {
             vrfCoordinator: 0x5C210eF41CD1a72de73bF76eC39637bB0d3d7BEE,
             gasLane: 0x9e1344a1247c8a1785d0a4681a27152bffdb43666ae5bf7d14d24a5efd44bf71,
             subscriptionId: 0,
-            callbackGasLimit: 100000,
+            callbackGasLimit: 500000,
             link: 0xE4aB69C077896252FAFBD49EFD26B5D171A32410,
-            account : 0x5D4DAcB7e634CF57ed2e02b190Eb0E468bBf36e1
-
+            account: 0x5D4DAcB7e634CF57ed2e02b190Eb0E468bBf36e1
         });
     }
 
@@ -87,7 +104,7 @@ contract HelperConfig is Script, CodeConstants {
             vrfCoordinator: address(VRFCoordinatorV2Mock),
             gasLane: "0x7a4b1",
             subscriptionId: 0,
-            callbackGasLimit: 100000,
+            callbackGasLimit: 500000,
             link: address(linkToken),
             account: FOUNDRY_DEFAULT_SENDER
         });

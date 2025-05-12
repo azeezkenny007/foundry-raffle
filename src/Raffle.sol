@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 
+
 /// @title A sample Raffle contract
 /// @author Okhamena Azeez
 /// @notice The contract carryouts the Raffle
@@ -62,6 +63,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     // External functions
     function enterRaffle() external payable {
+        
         if (msg.value < i_entranceFee) {
             revert Raffle__NotEnoughEthSent();
         }

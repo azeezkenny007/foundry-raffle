@@ -7,7 +7,7 @@ import {DeployRaffle} from "../../script/DeployRaffle.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {Raffle} from "../../src/Raffle.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {console} from  "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 import {CodeConstants} from "../../script/HelperConfig.s.sol";
 
 import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
@@ -130,9 +130,8 @@ contract RaffleTest is Test, TestConfig, CodeConstants {
         raffle.enterRaffle{value: entranceFee}();
     }
 
-
     ///////////////////////////////////////////////
-    //             Upkeep Tests 
+    //             Upkeep Tests
     ///////////////////////////////////////////////
 
     function testToCheckUpkeepReturnsFalse() external {
@@ -164,7 +163,6 @@ contract RaffleTest is Test, TestConfig, CodeConstants {
         raffle.performUpkeep("");
     }
 
-
     function testPerformUpkeepUpdateRaffleStateAndEmitRequestId() external raffleEntered {
         vm.recordLogs();
         raffle.performUpkeep("");
@@ -177,29 +175,32 @@ contract RaffleTest is Test, TestConfig, CodeConstants {
         assertEq(uint256(raffleState), 1);
     }
 
-
-    function testFulfillRandomWordsCanOnlyBeCalledIfPerformUpkeepIsTrue(uint256 randomWords) external raffleEntered  skipFork {
+    function testFulfillRandomWordsCanOnlyBeCalledIfPerformUpkeepIsTrue(uint256 randomWords)
+        external
+        raffleEntered
+        skipFork
+    {
         vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(randomWords, address(raffle));
     }
 
-
-    function testFulfillRandomwordsPicksAwinnerResetAndSendMoney() external raffleEntered  skipFork {
+    function testFulfillRandomwordsPicksAwinnerResetAndSendMoney() external raffleEntered skipFork {
         uint256 startingIndex = 0;
         uint256 numberOfPlayers = 3;
-        address expectedWinner = address(1);
+        // address expectedWinner = address(1);
 
-
-        for(uint256 i = startingIndex; i < numberOfPlayers; i++) {
+        for (uint256 i = startingIndex; i < numberOfPlayers; i++) {
             address newPlayer = address(uint160(i));
             hoax(newPlayer, STARTING_BALANCE);
             raffle.enterRaffle{value: entranceFee}();
         }
 
-        console.log("Contract balance before fulfill: ", address(raffle).balance);
+        // vm.deal(address(raffle), 30 ether);
+
+        // console.log("Contract balance before fulfill: ", address(raffle).balance);
 
         uint256 startingTimeStamp = raffle.getLastTimeStamp();
-        uint256 expectedWinnerBalance = expectedWinner.balance;
+        // uint256 expectedWinnerBalance = expectedWinner.balance;
         vm.recordLogs();
         raffle.performUpkeep("");
         Vm.Log[] memory entries = vm.getRecordedLogs();
@@ -217,7 +218,6 @@ contract RaffleTest is Test, TestConfig, CodeConstants {
         assert(raffleState == 0);
         assert(numOfPlayers == 0);
         assert(endingTimeStamp > startingTimeStamp);
-        assert(requestId > 0);       
+        assert(requestId > 0);
     }
-
 }
